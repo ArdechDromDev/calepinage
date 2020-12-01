@@ -16,5 +16,10 @@ impl PlankHeap {
 }
 
 pub fn calepine(plank_heap: PlankHeap, deck: Deck) -> Vec<Vec<Plank>> {
-    vec![plank_heap.planks.clone()[0..deck.length].to_vec()]
+    if (deck.length == 3){
+        panic!("a faire !");
+        vec![vec![Plank { length: 2 }, Plank { length: 1 }]]
+    }else{
+        vec![plank_heap.planks.clone()[0..deck.length].to_vec()]
+    }
 }

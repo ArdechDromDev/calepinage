@@ -34,4 +34,17 @@ mod calepinage_test {
         let expected = vec![vec![Plank { length: 1 }]];
         assert_eq!(expected, actual);
     }
+
+    #[test]
+    fn should_use_different_size() {
+        let deck = Deck {length : 3};
+        let plank_heap = PlankHeap::default()
+                                            .add(1,1)
+                                            .add(1,2);
+
+        let actual = calepine(plank_heap, deck);
+
+        let expected = vec![vec![Plank { length: 2 }, Plank { length: 1 }]];
+        assert_eq!(expected, actual);
+    }
 }
