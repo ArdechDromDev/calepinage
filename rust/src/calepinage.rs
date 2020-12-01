@@ -1,18 +1,18 @@
 #[derive(Debug)]
-pub struct Terrasse { pub length: usize }
+pub struct Deck { pub length: usize }
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct Planche { pub id:usize}
+pub struct Plank { pub id:usize}
 
-pub struct TasDePlanches {planches : Vec<Planche>}
-impl TasDePlanches {
+pub struct PlankHeap { planks: Vec<Plank>}
+impl PlankHeap {
 
     pub fn new(size:usize) -> Self {
-        let planches = (0..size).map(|id| Planche { id }).collect();
-        TasDePlanches{planches }
+        let planks = (0..size).map(|id| Plank { id }).collect();
+        PlankHeap { planks }
     }
 }
 
-pub fn calepine(tas_de_planches: TasDePlanches, terrasse: Terrasse) -> Vec<Vec<Planche>> {
-    vec![tas_de_planches.planches.clone()]
+pub fn calepine(plank_heap: PlankHeap, deck: Deck) -> Vec<Vec<Plank>> {
+    vec![plank_heap.planks.clone()[0..deck.length].to_vec()]
 }
