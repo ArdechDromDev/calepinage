@@ -1,5 +1,5 @@
 #[derive(Debug)]
-pub struct Terrasse {}
+pub struct Terrasse { pub length: usize }
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Planche { pub id:usize}
@@ -14,5 +14,5 @@ impl TasDePlanches {
 }
 
 pub fn calepine(tas_de_planches: TasDePlanches, terrasse: Terrasse) -> Vec<Vec<Planche>> {
-    vec![vec![tas_de_planches.planches[0].clone()]]
+    vec![tas_de_planches.planches.clone()]
 }
