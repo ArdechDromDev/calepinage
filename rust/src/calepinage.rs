@@ -20,15 +20,18 @@ impl PlankHeap {
 }
 
 pub fn calepine(plank_heap: PlankHeap, deck: Deck) -> Vec<Vec<Plank>> {
+
     let mut sorted_planks: Vec<Plank> = plank_heap.planks.clone();
     sorted_planks.sort_by(|a, b| b.length.cmp(&a.length));
 
-    let result = sorted_planks.iter().fold(PlankHeap::new(), |selected_planks, plank| {
+    let select_planks_fitting_length_goal = |selected_planks: PlankHeap, plank: &Plank| {
         if selected_planks.total_length + plank.length <= deck.length {
             selected_planks.add(1, plank.length)
         } else {
             selected_planks
         }
-    });
+    };
+
+    let result = sorted_planks.iter().fold(PlankHeap::new(), select_planks_fitting_length_goal);
     vec![result.planks]
 }
