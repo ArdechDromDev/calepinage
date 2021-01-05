@@ -32,6 +32,7 @@ pub fn calepine(plank_heap: PlankHeap, deck: Deck) -> Vec<Vec<Plank>> {
         }
     };
 
-    let result = sorted_planks.iter().fold(PlankHeap::new(), select_planks_fitting_length_goal);
+    let mut result = sorted_planks.iter().rfold(PlankHeap::new(), select_planks_fitting_length_goal);
+    //result.planks.reverse();
     vec![result.planks]
 }

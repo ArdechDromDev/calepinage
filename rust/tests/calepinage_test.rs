@@ -67,7 +67,17 @@ mod calepinage_test {
 
     #[test]
     fn should_use_longest_planks_first() {
+        let deck = Deck { length: 4 };
+        let plank_heap = PlankHeap::default()
+            .add(10, 1)
+            .add(2, 3);
 
+        let actual = calepine(plank_heap, deck);
+        let flattened: Vec<Plank> = actual.into_iter().flatten().collect();
+
+        let expected: Vec<Plank> = vec![Plank { length: 3 }, Plank { length: 1 }];
+        assert_that(&flattened).equals_iterator(&expected.iter());
+        assert_that(&flattened).has_length(2);
     }
 
 }
