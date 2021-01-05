@@ -5,21 +5,30 @@ pub struct Deck { pub length: usize }
 pub struct Plank { pub length:usize}
 
 #[derive(Default)]
-pub struct PlankHeap { planks: Vec<Plank>}
+pub struct PlankHeap { planks: Vec<Plank> , total_length: usize }
 
 impl PlankHeap {
     pub fn add(self, count: usize, length: usize) -> Self {
         let mut planks : Vec<Plank>= (0..count).map(|id| Plank { length: length }).collect();
         planks.extend_from_slice(&self.planks);
-        PlankHeap { planks }
+        PlankHeap { planks, total_length: self.total_length + count * length }
+    }
+
+    pub fn new() -> Self {
+        PlankHeap { planks: vec![], total_length: 0 }
     }
 }
 
 pub fn calepine(plank_heap: PlankHeap, deck: Deck) -> Vec<Vec<Plank>> {
-    if (deck.length == 3){
-        panic!("a faire !");
-        vec![vec![Plank { length: 2 }, Plank { length: 1 }]]
-    }else{
-        vec![plank_heap.planks.clone()[0..deck.length].to_vec()]
-    }
+    let mut sorted_planks: Vec<Plank> = plank_heap.planks.clone();
+    sorted_planks.sort_by(|a, b| b.length.cmp(&a.length));
+
+    let result = sorted_planks.iter().fold(PlankHeap::new(), |selected_planks, plank| {
+        if selected_planks.total_length + plank.length <= deck.length {
+            selected_planks.add(1, plank.length)
+        } else {
+            selected_planks
+        }
+    });
+    vec![result.planks]
 }
