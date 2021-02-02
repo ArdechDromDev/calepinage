@@ -10,7 +10,7 @@ mod calepinage_test {
 
         let actual = calepine(plank_heap, deck);
 
-        let expected = vec![vec![Plank { length: 1 }]];
+        let expected = vec![Line(vec![Plank { length: 1 }])];
         assert_eq!(expected, actual);
     }
 
@@ -21,7 +21,7 @@ mod calepinage_test {
 
         let actual = calepine(plank_heap, deck);
 
-        let expected = vec![vec![Plank { length: 1 }, Plank { length: 1 }]];
+        let expected = vec![Line(vec![Plank { length: 1 }, Plank { length: 1 }])];
         assert_eq!(expected, actual);
     }
 
@@ -32,7 +32,7 @@ mod calepinage_test {
 
         let actual = calepine(plank_heap, deck);
 
-        let expected = vec![vec![Plank { length: 1 }]];
+        let expected = vec![Line(vec![Plank { length: 1 }])];
         assert_eq!(expected, actual);
     }
 
@@ -44,7 +44,7 @@ mod calepinage_test {
             .add(1, 2);
 
         let actual = calepine(plank_heap, deck);
-        let flattened: Vec<Plank> = actual.into_iter().flatten().collect();
+        let flattened: Vec<Plank> = actual.into_iter().flat_map(|Line(line)| line).collect();
 
         let expected: Vec<Plank> = vec![Plank { length: 2 }, Plank { length: 1 }];
         assert_that(&flattened).contains_all_of(&expected.iter());
@@ -58,7 +58,7 @@ mod calepinage_test {
             .add(2, 3);
 
         let actual = calepine(plank_heap, deck);
-        let flattened: Vec<Plank> = actual.into_iter().flatten().collect();
+        let flattened: Vec<Plank> = actual.into_iter().flat_map(|Line(line)| line).collect();
 
         let expected: Vec<Plank> = vec![Plank { length: 3 }, Plank { length: 1 }];
         assert_that(&flattened).contains_all_of(&expected.iter());
@@ -73,7 +73,7 @@ mod calepinage_test {
             .add(2, 3);
 
         let actual = calepine(plank_heap, deck);
-        let flattened: Vec<Plank> = actual.into_iter().flatten().collect();
+        let flattened: Vec<Plank> = actual.into_iter().flat_map(|Line(line)| line).collect();
 
         let expected: Vec<Plank> = vec![Plank { length: 3 }, Plank { length: 1 }];
         assert_that(&flattened).equals_iterator(&expected.iter());
