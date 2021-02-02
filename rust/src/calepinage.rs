@@ -21,6 +21,19 @@ impl PlankHeap {
 }
 
 
+macro_rules! line {
+    () => (
+        Line::default()
+    );
+    ($elem: expr) => (
+      Line::default().with_plank($elem);
+    );
+    ( $head:expr, $($tail:expr), +) => {
+       line!($($tail),+).with_plank($head)
+     };
+     // TODO : c'est récursif à l'envers.
+}
+
 #[derive(Debug, PartialEq, Clone, Default)]
 pub struct Line(pub Vec<Plank>);
 
@@ -32,14 +45,29 @@ impl Line {
         planks.push(new_plank_to_add);
         Line(planks)
     }
-
 }
 
 #[test]
 fn should_build_line(){
-    let actual = Line::default()
+    let actual = line![]
         .with_plank(Plank { length: 2 })
         .with_plank(Plank { length: 1 });
+
+    let expected = Line(vec![Plank { length: 2 }, Plank { length: 1 }]);
+    assert_eq!(expected, actual);
+}
+
+#[test]
+fn should_use_macro(){
+    let actual = line![Plank { length: 2 }];
+
+    let expected = Line(vec![Plank { length: 2 }]);
+    assert_eq!(expected, actual);
+}
+
+#[test]
+fn should_use_macro_with_2_planks(){
+   let actual = line![Plank { length: 2 }, Plank { length: 1 }];
 
     let expected = Line(vec![Plank { length: 2 }, Plank { length: 1 }]);
     assert_eq!(expected, actual);
