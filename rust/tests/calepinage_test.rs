@@ -75,9 +75,16 @@ mod calepinage_test {
         let Calepinage(actual) = calepine(plank_heap, deck);
         let flattened: Vec<Plank> = actual.into_iter().flat_map(|Line(line)| line).collect();
 
+        /*let actual = calepine(plank_heap, deck);
+        let expected : Calepinage = Calepinage::default().with_line(Line::default()
+                                                .with_plank(Plank { length: 3 })
+                                                .with_plank(Plank { length: 1 })
+                                                );
+        */
+
+
         let expected: Vec<Plank> = vec![Plank { length: 3 }, Plank { length: 1 }];
         assert_that(&flattened).equals_iterator(&expected.iter());
         assert_that(&flattened).has_length(2);
     }
-
 }

@@ -7,12 +7,6 @@ pub struct Plank { pub length: usize }
 #[derive(Default)]
 pub struct PlankHeap { planks: Vec<Plank>, total_length: usize }
 
-#[derive(Debug, PartialEq, Clone)]
-pub struct Line(pub Vec<Plank>);
-
-#[derive(Debug, PartialEq, Clone)]
-pub struct Calepinage(pub Vec<Line>);
-
 impl PlankHeap {
     pub fn add(self, count: usize, length: usize) -> Self {
         let planks_to_be_added: Vec<Plank> = (0..count).map(|_| Plank { length }).collect();
@@ -23,6 +17,43 @@ impl PlankHeap {
 
     pub fn new() -> Self {
         PlankHeap { planks: vec![], total_length: 0 }
+    }
+}
+
+
+#[derive(Debug, PartialEq, Clone, Default)]
+pub struct Line(pub Vec<Plank>);
+
+impl Line {
+
+    pub fn with_plank(self, new_plank_to_add: Plank) -> Self {
+        let Line(old_planks) = self;
+        let mut planks = old_planks.clone();
+        planks.push(new_plank_to_add);
+        Line(planks)
+    }
+
+}
+
+#[test]
+fn should_build_line(){
+    let actual = Line::default()
+        .with_plank(Plank { length: 2 })
+        .with_plank(Plank { length: 1 });
+
+    let expected = Line(vec![Plank { length: 2 }, Plank { length: 1 }]);
+    assert_eq!(expected, actual);
+}
+
+#[derive(Debug, PartialEq, Clone, Default)]
+pub struct Calepinage(pub Vec<Line>);
+
+impl Calepinage{
+    pub fn with_line(self, new_line_to_add:Line) -> Self{
+        let Calepinage(old_lines) = self;
+        let mut lines = vec![new_line_to_add];
+        lines.extend(old_lines);
+        Calepinage(lines)
     }
 }
 
@@ -39,5 +70,5 @@ pub fn calepine(plank_heap: PlankHeap, deck: Deck) -> Calepinage {
     };
 
     let result = sorted_planks.iter().fold(PlankHeap::new(), select_planks_fitting_length_goal);
-    Calepinage(vec![Line(result.planks)])
+    Calepinage::default().with_line(Line(result.planks))
 }
