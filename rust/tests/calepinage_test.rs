@@ -10,7 +10,7 @@ mod calepinage_test {
 
         let actual = calepine(plank_heap, deck);
 
-        let expected = vec![Line(vec![Plank { length: 1 }])];
+        let expected = Calepinage(vec![Line(vec![Plank { length: 1 }])]);
         assert_eq!(expected, actual);
     }
 
@@ -21,7 +21,7 @@ mod calepinage_test {
 
         let actual = calepine(plank_heap, deck);
 
-        let expected = vec![Line(vec![Plank { length: 1 }, Plank { length: 1 }])];
+        let expected = Calepinage(vec![Line(vec![Plank { length: 1 }, Plank { length: 1 }])]);
         assert_eq!(expected, actual);
     }
 
@@ -32,7 +32,7 @@ mod calepinage_test {
 
         let actual = calepine(plank_heap, deck);
 
-        let expected = vec![Line(vec![Plank { length: 1 }])];
+        let expected = Calepinage(vec![Line(vec![Plank { length: 1 }])]);
         assert_eq!(expected, actual);
     }
 
@@ -43,7 +43,7 @@ mod calepinage_test {
             .add(1, 1)
             .add(1, 2);
 
-        let actual = calepine(plank_heap, deck);
+        let Calepinage(actual) = calepine(plank_heap, deck);
         let flattened: Vec<Plank> = actual.into_iter().flat_map(|Line(line)| line).collect();
 
         let expected: Vec<Plank> = vec![Plank { length: 2 }, Plank { length: 1 }];
@@ -57,7 +57,7 @@ mod calepinage_test {
             .add(1, 1)
             .add(2, 3);
 
-        let actual = calepine(plank_heap, deck);
+        let Calepinage(actual) = calepine(plank_heap, deck);
         let flattened: Vec<Plank> = actual.into_iter().flat_map(|Line(line)| line).collect();
 
         let expected: Vec<Plank> = vec![Plank { length: 3 }, Plank { length: 1 }];
@@ -72,7 +72,7 @@ mod calepinage_test {
             .add(10, 1)
             .add(2, 3);
 
-        let actual = calepine(plank_heap, deck);
+        let Calepinage(actual) = calepine(plank_heap, deck);
         let flattened: Vec<Plank> = actual.into_iter().flat_map(|Line(line)| line).collect();
 
         let expected: Vec<Plank> = vec![Plank { length: 3 }, Plank { length: 1 }];
