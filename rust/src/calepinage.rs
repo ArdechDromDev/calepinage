@@ -2,15 +2,16 @@
 pub struct Deck { pub length: usize }
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct Plank { pub length:usize}
+pub struct Plank { pub length: usize }
 
 #[derive(Default)]
-pub struct PlankHeap { planks: Vec<Plank> , total_length: usize }
+pub struct PlankHeap { planks: Vec<Plank>, total_length: usize }
 
 impl PlankHeap {
     pub fn add(self, count: usize, length: usize) -> Self {
-        let mut planks : Vec<Plank>= (0..count).map(|id| Plank { length: length }).collect();
-        planks.extend_from_slice(&self.planks);
+        let planks_to_be_added: Vec<Plank> = (0..count).map(|_| Plank { length }).collect();
+        let mut planks = self.planks.clone();
+        planks.extend_from_slice(&planks_to_be_added);
         PlankHeap { planks, total_length: self.total_length + count * length }
     }
 
@@ -20,7 +21,6 @@ impl PlankHeap {
 }
 
 pub fn calepine(plank_heap: PlankHeap, deck: Deck) -> Vec<Vec<Plank>> {
-
     let mut sorted_planks: Vec<Plank> = plank_heap.planks.clone();
     sorted_planks.sort_by(|a, b| b.length.cmp(&a.length));
 
@@ -32,7 +32,6 @@ pub fn calepine(plank_heap: PlankHeap, deck: Deck) -> Vec<Vec<Plank>> {
         }
     };
 
-    let mut result = sorted_planks.iter().rfold(PlankHeap::new(), select_planks_fitting_length_goal);
-    //result.planks.reverse();
+    let result = sorted_planks.iter().fold(PlankHeap::new(), select_planks_fitting_length_goal);
     vec![result.planks]
 }
