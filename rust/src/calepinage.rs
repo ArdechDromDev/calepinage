@@ -1,5 +1,18 @@
+// This is a deck with length = 6 and width = 4
+// It's made with 8 planks.
+// p1 has length = 2
+// p3 has length = 4
+//
+// /===========\
+// |p1|  |p5|p7|
+// |  |p3|  |--|
+// |--|  |  |p8|
+// |p2|  |--|  |
+// |  |--|p6|  |
+// |  |p4|  |  |
+// \===========/
 #[derive(Debug)]
-pub struct Deck { pub length: usize }
+pub struct Deck { pub length: usize, pub width: usize }
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Plank { pub length: usize }
