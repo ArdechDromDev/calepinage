@@ -1,5 +1,6 @@
 #[cfg(test)]
 mod calepinage_test {
+    use rust::plank_line;
     use rust::calepinage::*;
     use spectral::prelude::*;
 
@@ -72,19 +73,11 @@ mod calepinage_test {
             .add(10, 1)
             .add(2, 3);
 
-        let Calepinage(actual) = calepine(plank_heap, deck);
-        let flattened: Vec<Plank> = actual.into_iter().flat_map(|Line(line)| line).collect();
+        let actual = calepine(plank_heap, deck);
 
-        /*let actual = calepine(plank_heap, deck);
-        let expected : Calepinage = Calepinage::default().with_line(Line::default()
-                                                .with_plank(Plank { length: 3 })
-                                                .with_plank(Plank { length: 1 })
-                                                );
-        */
-
-
-        let expected: Vec<Plank> = vec![Plank { length: 3 }, Plank { length: 1 }];
-        assert_that(&flattened).equals_iterator(&expected.iter());
-        assert_that(&flattened).has_length(2);
+        let expected: Calepinage = Calepinage::default().with_line(
+            plank_line![Plank { length: 3 }, Plank { length: 1 }]
+        );
+        assert_that(&actual).is_equal_to(&expected);
     }
 }
