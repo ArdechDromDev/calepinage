@@ -31,6 +31,10 @@ impl PlankHeap {
     pub fn new() -> Self {
         PlankHeap { planks: vec![], total_length: 0 }
     }
+
+    pub fn from_planks(planks: Vec<Plank>) -> Self {
+        planks.iter().fold(PlankHeap::new(), |heap, plank| heap.add(1, plank.length))
+    }
 }
 
 #[macro_export]
@@ -95,18 +99,57 @@ impl Calepinage{
     }
 }
 
-pub fn calepine(plank_heap: PlankHeap, deck: Deck) -> Calepinage {
-    let mut sorted_planks: Vec<Plank> = plank_heap.planks.clone();
-    sorted_planks.sort_by(|a, b| b.length.cmp(&a.length));
+#[derive(Default)]
+struct CalepineStep {
+    remaining: PlankHeap,
+    selected: PlankHeap,
+}
 
-    let select_planks_fitting_length_goal = |selected_planks: PlankHeap, plank: &Plank| {
-        if selected_planks.total_length + plank.length <= deck.length {
-            selected_planks.add(1, plank.length)
+impl CalepineStep {
+}
+
+pub fn calepine(plank_heap: PlankHeap, deck: Deck) -> Calepinage {
+    let mut remaining: PlankHeap = PlankHeap::from_planks(plank_heap.planks.clone());
+    remaining.planks.sort_by(|a, b| b.length.cmp(&a.length));
+
+    let select_planks_fitting_length_goal = |step: CalepineStep, plank: &Plank| {
+         if step.selected.total_length + plank.length <= deck.length {
+           let selected = step.selected.add(1, plank.length);
+           CalepineStep { selected, .. step }
         } else {
-            selected_planks
+           let remaining = step.remaining.add(1, plank.length);
+           CalepineStep { remaining, .. step }
         }
     };
 
-    let result = sorted_planks.iter().fold(PlankHeap::new(), select_planks_fitting_length_goal);
-    Calepinage::default().with_line(Line(result.planks))
+    /*let mut calepinage = Calepinage::default();
+    let mut line = 0;
+    loop {
+        line += 1 ;
+        let CalepineStep { selected: result, remaining: remaining } = remaining.planks.iter().fold(CalepineStep::default(), select_planks_fitting_length_goal);
+        calepinage = calepinage.with_line(Line(result.planks));
+        if line == deck.width {
+            break calepinage;
+        }
+    }*/
+    (0..deck.width).collect::<Vec<usize>>().iter().fold(Calepinage::default(), |calepinage, _| {
+        let CalepineStep { selected: result, remaining: remaining } = remaining.planks.iter().fold(CalepineStep::default(), select_planks_fitting_length_goal);
+        calepinage.with_line(Line(result.planks))
+    })
+/*     for line in 0..deck.width {
+        let CalepineStep { selected: result, remaining: remaining } = remaining.planks.iter().fold(CalepineStep::default(), select_planks_fitting_length_goal);
+        let result = result.with_line(Line(result.planks));
+        result
+    } */
+/*    if deck.width == 2 {
+
+        let CalepineStep { selected: result2, remaining: _ } = remaining.planks.iter().fold(CalepineStep::default(), select_planks_fitting_length_goal);
+
+        Calepinage::default().with_line(Line(result.planks)).with_line(Line( result2.planks))
+    } else {
+        Calepinage::default().with_line(Line(result.planks))
+    }
+*/
+
+
 }

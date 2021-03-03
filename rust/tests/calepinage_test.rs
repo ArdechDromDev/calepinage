@@ -75,9 +75,44 @@ mod calepinage_test {
 
         let actual = calepine(plank_heap, deck);
 
-        let expected: Calepinage = Calepinage::default().with_line(
+        let expected: Calepinage = a_calepinage().with_line(
             plank_line![Plank { length: 3 }, Plank { length: 1 }]
         );
+        assert_that(&actual).is_equal_to(&expected);
+    }
+
+    #[test]
+    fn should_calepine_2_lines_deck() {
+        let deck = Deck { length: 2, width: 2 };
+        let plank_heap = PlankHeap::default()
+            .add(4, 1);
+
+        let actual = calepine(plank_heap, deck);
+
+        let expected: Calepinage = a_calepinage()
+            .with_line(plank_line![Plank { length: 1 }, Plank { length: 1 }])
+            .with_line(plank_line![Plank { length: 1 }, Plank { length: 1 }]);
+
+        assert_that(&actual).is_equal_to(&expected);
+    }
+
+    fn a_calepinage() -> Calepinage {
+        Calepinage::default()
+    }
+
+    #[test]
+    fn should_calepine_2_lines_deck_with_different_sizes() {
+        let deck = Deck { length: 2, width: 2 };
+        let plank_heap = PlankHeap::default()
+            .add(2, 1)
+            .add(1, 2);
+
+        let actual = calepine(plank_heap, deck);
+
+        let expected: Calepinage = a_calepinage()
+            .with_line(plank_line![Plank { length: 2 }])
+            .with_line(plank_line![Plank { length: 1 }, Plank { length: 1 }]);
+
         assert_that(&actual).is_equal_to(&expected);
     }
 }
