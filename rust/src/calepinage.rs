@@ -14,6 +14,14 @@
 #[derive(Debug)]
 pub struct Deck { pub length: usize, pub width: usize }
 
+impl Deck {
+    pub(crate) fn area(&self) -> usize {
+            self.length * self.width
+    }
+}
+
+impl Deck {}
+
 #[derive(Debug, PartialEq, Clone)]
 pub struct Plank { pub length: usize }
 
@@ -52,6 +60,10 @@ macro_rules! plank_line {
 pub struct Line(pub Vec<Plank>);
 
 impl Line {
+    pub(crate) fn area(&self) -> usize {
+        self.0.iter().fold(0, |sum, plank| { sum + plank.length })
+    }
+
     pub fn with_plank(self, new_plank_to_add: Plank) -> Self {
         let Line(old_planks) = self;
         let mut planks = old_planks.clone();
@@ -90,12 +102,25 @@ fn should_use_macro_with_2_planks() {
 pub struct Calepinage(pub Vec<Line>);
 
 impl Calepinage {
+    pub(crate) fn area(&self) -> usize {
+        self.0.iter().fold(0, |sum, line| { sum + line.area()})
+    }
+
     pub fn with_line(self, new_line_to_add: Line) -> Self {
         let Calepinage(old_lines) = self;
         let mut lines = vec![new_line_to_add];
         lines.extend(old_lines);
         Calepinage(lines)
     }
+}
+
+#[test]
+fn should_calculate_area_for_calepinage(){
+    let calepinage = Calepinage::default()
+        .with_line(plank_line![Plank { length: 3 }])
+        .with_line(plank_line![Plank { length: 2 }, Plank { length: 1 }]);
+
+    assert_eq!(6, calepinage.area());
 }
 
 #[derive(Default)]
@@ -106,7 +131,7 @@ struct CalepineStep {
 
 impl CalepineStep {}
 
-pub fn calepine(plank_heap: PlankHeap, deck: Deck) -> Calepinage {
+pub fn calepine(plank_heap: PlankHeap, deck: Deck) -> Result<Calepinage, &'static str> {
     let select_planks_fitting_length_goal = |step: CalepineStep, plank: &Plank| {
         if step.selected.total_length + plank.length <= deck.length {
             let selected = step.selected.add(1, plank.length);
@@ -120,12 +145,16 @@ pub fn calepine(plank_heap: PlankHeap, deck: Deck) -> Calepinage {
     let mut initial_plank_heap: PlankHeap = PlankHeap::from_planks(plank_heap.planks.clone());
     initial_plank_heap.planks.sort_by(|a, b| b.length.cmp(&a.length));
 
-    let (result, _) = (0..deck.width).into_iter()
+    let (calepinage, _) = (0..deck.width).into_iter()
         .fold((Calepinage::default(), initial_plank_heap), |(calepinage, remaining), _| {
             let CalepineStep { selected: result, remaining: next_remaining } = remaining.planks.iter().fold(CalepineStep::default(), select_planks_fitting_length_goal);
             (calepinage.with_line(Line(result.planks)), next_remaining)
-        }
+        },
         );
 
-    result
+    if deck.area() != calepinage.area() {
+        Err("Olalala ! ")
+    } else {
+        Ok(calepinage)
+    }
 }

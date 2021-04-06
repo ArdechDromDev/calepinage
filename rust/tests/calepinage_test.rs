@@ -12,7 +12,7 @@ mod calepinage_test {
         let actual = calepine(plank_heap, deck);
 
         let expected = Calepinage(vec![Line(vec![Plank { length: 1 }])]);
-        assert_eq!(expected, actual);
+        assert_that(&actual).is_ok().is_equal_to(expected);
     }
 
     #[test]
@@ -23,7 +23,7 @@ mod calepinage_test {
         let actual = calepine(plank_heap, deck);
 
         let expected = Calepinage(vec![Line(vec![Plank { length: 1 }, Plank { length: 1 }])]);
-        assert_eq!(expected, actual);
+        assert_that(&actual).is_ok().is_equal_to(expected);
     }
 
     #[test]
@@ -34,7 +34,7 @@ mod calepinage_test {
         let actual = calepine(plank_heap, deck);
 
         let expected = Calepinage(vec![Line(vec![Plank { length: 1 }])]);
-        assert_eq!(expected, actual);
+        assert_that(&actual).is_ok().is_equal_to(expected);
     }
 
     #[test]
@@ -44,7 +44,7 @@ mod calepinage_test {
             .add(1, 1)
             .add(1, 2);
 
-        let Calepinage(actual) = calepine(plank_heap, deck);
+        let Calepinage(actual) = calepine(plank_heap, deck).unwrap();
         let flattened: Vec<Plank> = actual.into_iter().flat_map(|Line(line)| line).collect();
 
         let expected: Vec<Plank> = vec![Plank { length: 2 }, Plank { length: 1 }];
@@ -58,7 +58,7 @@ mod calepinage_test {
             .add(1, 1)
             .add(2, 3);
 
-        let Calepinage(actual) = calepine(plank_heap, deck);
+        let Calepinage(actual) = calepine(plank_heap, deck).unwrap();
         let flattened: Vec<Plank> = actual.into_iter().flat_map(|Line(line)| line).collect();
 
         let expected: Vec<Plank> = vec![Plank { length: 3 }, Plank { length: 1 }];
@@ -78,7 +78,7 @@ mod calepinage_test {
         let expected: Calepinage = a_calepinage().with_line(
             plank_line![Plank { length: 3 }, Plank { length: 1 }]
         );
-        assert_that(&actual).is_equal_to(&expected);
+        assert_that(&actual).is_ok().is_equal_to(&expected);
     }
 
     #[test]
@@ -93,7 +93,7 @@ mod calepinage_test {
             .with_line(plank_line![Plank { length: 1 }, Plank { length: 1 }])
             .with_line(plank_line![Plank { length: 1 }, Plank { length: 1 }]);
 
-        assert_that(&actual).is_equal_to(&expected);
+        assert_that(&actual).is_ok().is_equal_to(&expected);
     }
 
     fn a_calepinage() -> Calepinage {
@@ -113,6 +113,6 @@ mod calepinage_test {
             .with_line(plank_line![Plank { length: 2 }])
             .with_line(plank_line![Plank { length: 1 }, Plank { length: 1 }]);
 
-        assert_that(&actual).is_equal_to(&expected);
+        assert_that(&actual).is_ok().is_equal_to(&expected);
     }
 }
