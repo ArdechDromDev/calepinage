@@ -144,17 +144,21 @@ pub fn calepine(plank_heap: PlankHeap, deck: Deck) -> Result<Calepinage, &'stati
 
     let mut initial_plank_heap: PlankHeap = PlankHeap::from_planks(plank_heap.planks.clone());
     initial_plank_heap.planks.sort_by(|a, b| b.length.cmp(&a.length));
+    
+    let result_calpinage = (0..deck.width).into_iter()
+        .try_fold((Calepinage::default(), initial_plank_heap), |(calepinage, remaining), _| {
 
-    let (calepinage, _) = (0..deck.width).into_iter()
-        .fold((Calepinage::default(), initial_plank_heap), |(calepinage, remaining), _| {
+            if remaining.total_length == 0 {
+                return Err("Olalala ! ")
+            }
+
             let CalepineStep { selected: result, remaining: next_remaining } = remaining.planks.iter().fold(CalepineStep::default(), select_planks_fitting_length_goal);
-            (calepinage.with_line(Line(result.planks)), next_remaining)
+   
+            Ok((calepinage.with_line(Line(result.planks)), next_remaining))
         },
         );
 
-    if deck.area() != calepinage.area() {
-        Err("Olalala ! ")
-    } else {
-        Ok(calepinage)
-    }
+    let (calpinage, _remaining) = result_calpinage?;
+
+    Ok(calpinage)
 }
