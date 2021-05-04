@@ -159,4 +159,24 @@ mod calepinage_test {
             .is_err()
             .is_equal_to(CalepinageError::OnlyUnusablePlanksRemaining);
     }
+
+    #[test]
+    #[ignore] //waiting fix for with_line
+    fn should_invert_longest_plank_in_each_line() {
+        let deck = Deck {
+            length: 3,
+            width: 2,
+        };
+        let plank_heap = PlankHeap::default().add(2, 1).add(2, 2);
+
+        let actual = calepine(plank_heap, deck);
+
+        let expected: Calepinage = a_calepinage()
+            .with_line(plank_line![Plank { length: 2 }, Plank { length: 1 }])
+            .with_line(plank_line![Plank { length: 1 }, Plank { length: 2 }]);
+
+        assert_that(&actual).is_ok().is_equal_to(&expected);
+    }
+
+
 }

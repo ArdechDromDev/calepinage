@@ -116,6 +116,18 @@ impl Calepinage {
     }
 }
 
+#[test]
+fn with_line_should_append_lines_in_order(){
+    let calepinage = Calepinage::default()
+        .with_line(plank_line![Plank { length: 1 }])
+        .with_line(plank_line![Plank { length: 2 }]);
+
+    let Calepinage(lines) = calepinage;
+    assert_eq!(&lines[0], &plank_line![Plank { length: 1 }]);
+    assert_eq!(&lines[1], &plank_line![Plank { length: 2 }]);
+}
+
+
 #[derive(Default)]
 struct CalepineStep {
     remaining: PlankHeap,
