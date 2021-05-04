@@ -162,17 +162,22 @@ fn select_planks_for_line(
         }
     };
 
-    let result = the_plank_heap
+    let step = the_plank_heap
         .planks
         .iter()
         .fold(CalepineStep::default(), select_planks_fitting_length_goal);
-    if result.selected.total_length < deck_length {
-        if result.remaining.total_length == 0 {
+
+    assert_length_goal_fulfilled(step, deck_length)
+}
+
+fn assert_length_goal_fulfilled(step: CalepineStep, deck_length : usize ) -> Result<CalepineStep, CalepinageError> {
+    if step.selected.total_length < deck_length {
+        if step.remaining.total_length == 0 {
             Err(CalepinageError::NotEnoughPlanks)
         } else {
             Err(CalepinageError::OnlyUnusablePlanksRemaining)
         }
     } else {
-        Ok(result)
+        Ok(step)
     }
 }
