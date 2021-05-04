@@ -1,12 +1,15 @@
 #[cfg(test)]
 mod calepinage_test {
-    use rust::plank_line;
     use rust::calepinage::*;
+    use rust::plank_line;
     use spectral::prelude::*;
 
     #[test]
     fn should_return_planks_when_deck_is_really_small() {
-        let deck = Deck { length: 1, width: 1 };
+        let deck = Deck {
+            length: 1,
+            width: 1,
+        };
         let plank_heap = PlankHeap::default().add(1, 1);
 
         let actual = calepine(plank_heap, deck);
@@ -17,7 +20,10 @@ mod calepinage_test {
 
     #[test]
     fn should_return_list_of_2_planks() {
-        let deck = Deck { length: 2, width: 1 };
+        let deck = Deck {
+            length: 2,
+            width: 1,
+        };
         let plank_heap = PlankHeap::default().add(2, 1);
 
         let actual = calepine(plank_heap, deck);
@@ -28,7 +34,10 @@ mod calepinage_test {
 
     #[test]
     fn should_use_only_one_plank_if_does_not_need_more() {
-        let deck = Deck { length: 1, width: 1 };
+        let deck = Deck {
+            length: 1,
+            width: 1,
+        };
         let plank_heap = PlankHeap::default().add(2, 1);
 
         let actual = calepine(plank_heap, deck);
@@ -39,10 +48,11 @@ mod calepinage_test {
 
     #[test]
     fn should_use_different_size() {
-        let deck = Deck { length: 3, width: 1 };
-        let plank_heap = PlankHeap::default()
-            .add(1, 1)
-            .add(1, 2);
+        let deck = Deck {
+            length: 3,
+            width: 1,
+        };
+        let plank_heap = PlankHeap::default().add(1, 1).add(1, 2);
 
         let Calepinage(actual) = calepine(plank_heap, deck).unwrap();
         let flattened: Vec<Plank> = actual.into_iter().flat_map(|Line(line)| line).collect();
@@ -53,10 +63,11 @@ mod calepinage_test {
 
     #[test]
     fn should_use_only_required_planks() {
-        let deck = Deck { length: 4, width: 1 };
-        let plank_heap = PlankHeap::default()
-            .add(1, 1)
-            .add(2, 3);
+        let deck = Deck {
+            length: 4,
+            width: 1,
+        };
+        let plank_heap = PlankHeap::default().add(1, 1).add(2, 3);
 
         let Calepinage(actual) = calepine(plank_heap, deck).unwrap();
         let flattened: Vec<Plank> = actual.into_iter().flat_map(|Line(line)| line).collect();
@@ -68,24 +79,26 @@ mod calepinage_test {
 
     #[test]
     fn should_use_longest_planks_first() {
-        let deck = Deck { length: 4, width: 1 };
-        let plank_heap = PlankHeap::default()
-            .add(10, 1)
-            .add(2, 3);
+        let deck = Deck {
+            length: 4,
+            width: 1,
+        };
+        let plank_heap = PlankHeap::default().add(10, 1).add(2, 3);
 
         let actual = calepine(plank_heap, deck);
 
-        let expected: Calepinage = a_calepinage().with_line(
-            plank_line![Plank { length: 3 }, Plank { length: 1 }]
-        );
+        let expected: Calepinage =
+            a_calepinage().with_line(plank_line![Plank { length: 3 }, Plank { length: 1 }]);
         assert_that(&actual).is_ok().is_equal_to(&expected);
     }
 
     #[test]
     fn should_calepine_2_lines_deck() {
-        let deck = Deck { length: 2, width: 2 };
-        let plank_heap = PlankHeap::default()
-            .add(4, 1);
+        let deck = Deck {
+            length: 2,
+            width: 2,
+        };
+        let plank_heap = PlankHeap::default().add(4, 1);
 
         let actual = calepine(plank_heap, deck);
 
@@ -102,10 +115,11 @@ mod calepinage_test {
 
     #[test]
     fn should_calepine_2_lines_deck_with_different_sizes() {
-        let deck = Deck { length: 2, width: 2 };
-        let plank_heap = PlankHeap::default()
-            .add(2, 1)
-            .add(1, 2);
+        let deck = Deck {
+            length: 2,
+            width: 2,
+        };
+        let plank_heap = PlankHeap::default().add(2, 1).add(1, 2);
 
         let actual = calepine(plank_heap, deck);
 
@@ -114,5 +128,35 @@ mod calepinage_test {
             .with_line(plank_line![Plank { length: 1 }, Plank { length: 1 }]);
 
         assert_that(&actual).is_ok().is_equal_to(&expected);
+    }
+
+    #[test]
+    fn should_return_an_error_if_not_enough_planks() {
+        let deck = Deck {
+            length: 2,
+            width: 2,
+        };
+        let plank_heap = PlankHeap::default().add(1, 1);
+
+        let result = calepine(plank_heap, deck);
+
+        assert_that(&result)
+            .is_err()
+            .is_equal_to(CalepinageError::NotEnoughPlanks);
+    }
+
+    #[test]
+    fn should_return_an_error_if_not_enough_planks_but_some_planks_too_big() {
+        let deck = Deck {
+            length: 2,
+            width: 2,
+        };
+        let plank_heap = PlankHeap::default().add(1, 100);
+
+        let result = calepine(plank_heap, deck);
+
+        assert_that(&result)
+            .is_err()
+            .is_equal_to(CalepinageError::OnlyUnusablePlanksRemaining);
     }
 }

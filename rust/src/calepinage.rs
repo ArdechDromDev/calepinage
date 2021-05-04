@@ -12,30 +12,46 @@
 // |  |p4|  |  |
 // \===========/
 #[derive(Debug)]
-pub struct Deck { pub length: usize, pub width: usize }
+pub struct Deck {
+    pub length: usize,
+    pub width: usize,
+}
 
 impl Deck {}
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct Plank { pub length: usize }
+pub struct Plank {
+    pub length: usize,
+}
 
 #[derive(Default)]
-pub struct PlankHeap { planks: Vec<Plank>, total_length: usize }
+pub struct PlankHeap {
+    planks: Vec<Plank>,
+    total_length: usize,
+}
 
 impl PlankHeap {
     pub fn add(self, count: usize, length: usize) -> Self {
         let planks_to_be_added: Vec<Plank> = (0..count).map(|_| Plank { length }).collect();
         let mut planks = self.planks.clone();
         planks.extend_from_slice(&planks_to_be_added);
-        PlankHeap { planks, total_length: self.total_length + count * length }
+        PlankHeap {
+            planks,
+            total_length: self.total_length + count * length,
+        }
     }
 
     pub fn new() -> Self {
-        PlankHeap { planks: vec![], total_length: 0 }
+        PlankHeap {
+            planks: vec![],
+            total_length: 0,
+        }
     }
 
     pub fn from_planks(planks: Vec<Plank>) -> Self {
-        planks.iter().fold(PlankHeap::new(), |heap, plank| heap.add(1, plank.length))
+        planks
+            .iter()
+            .fold(PlankHeap::new(), |heap, plank| heap.add(1, plank.length))
     }
 }
 
@@ -56,7 +72,7 @@ pub struct Line(pub Vec<Plank>);
 impl Line {
     pub fn with_plank(self, new_plank_to_add: Plank) -> Self {
         let Line(old_planks) = self;
-        let mut planks = old_planks.clone();
+        let mut planks = old_planks;
         planks.push(new_plank_to_add);
         Line(planks)
     }
@@ -92,7 +108,6 @@ fn should_use_macro_with_2_planks() {
 pub struct Calepinage(pub Vec<Line>);
 
 impl Calepinage {
-
     pub fn with_line(self, new_line_to_add: Line) -> Self {
         let Calepinage(old_lines) = self;
         let mut lines = vec![new_line_to_add];
@@ -109,16 +124,23 @@ struct CalepineStep {
 
 impl CalepineStep {}
 
-pub fn calepine(plank_heap: PlankHeap, deck: Deck) -> Result<Calepinage, &'static str> {
-    let mut the_plank_heap: PlankHeap = PlankHeap::from_planks(plank_heap.planks.clone());
-    the_plank_heap.planks.sort_by(|a, b| b.length.cmp(&a.length));
+#[derive(Debug, PartialEq)]
+pub enum CalepinageError {
+    NotEnoughPlanks,
+    OnlyUnusablePlanksRemaining,
+}
+
+pub fn calepine(plank_heap: PlankHeap, deck: Deck) -> Result<Calepinage, CalepinageError> {
+    let mut the_plank_heap: PlankHeap = PlankHeap::from_planks(plank_heap.planks);
+    let decreasing_length = |a: &Plank, b: &Plank| b.length.cmp(&a.length);
+    the_plank_heap.planks.sort_by(decreasing_length);
 
     let mut calepinage = Calepinage::default();
-    for _ in 0..deck.width{
-        if the_plank_heap.total_length == 0 {
-            return Err("Olalala ! ");
-        }
-        let CalepineStep { selected: result, remaining: next_remaining } = select_planks_for_line(&mut the_plank_heap, deck.length);
+    for _ in 0..deck.width {
+        let CalepineStep {
+            selected: result,
+            remaining: next_remaining,
+        } = select_planks_for_line(&mut the_plank_heap, deck.length)?;
         the_plank_heap = next_remaining;
         calepinage = calepinage.with_line(Line(result.planks));
     }
@@ -126,7 +148,10 @@ pub fn calepine(plank_heap: PlankHeap, deck: Deck) -> Result<Calepinage, &'stati
     Ok(calepinage)
 }
 
-fn select_planks_for_line(the_plank_heap: &mut PlankHeap, deck_length:usize) -> CalepineStep {
+fn select_planks_for_line(
+    the_plank_heap: &mut PlankHeap,
+    deck_length: usize,
+) -> Result<CalepineStep, CalepinageError> {
     let select_planks_fitting_length_goal = |step: CalepineStep, plank: &Plank| {
         if step.selected.total_length + plank.length <= deck_length {
             let selected = step.selected.add(1, plank.length);
@@ -137,5 +162,17 @@ fn select_planks_for_line(the_plank_heap: &mut PlankHeap, deck_length:usize) -> 
         }
     };
 
-    the_plank_heap.planks.iter().fold(CalepineStep::default(), select_planks_fitting_length_goal)
+    let result = the_plank_heap
+        .planks
+        .iter()
+        .fold(CalepineStep::default(), select_planks_fitting_length_goal);
+    if result.selected.total_length < deck_length {
+        if result.remaining.total_length == 0 {
+            Err(CalepinageError::NotEnoughPlanks)
+        } else {
+            Err(CalepinageError::OnlyUnusablePlanksRemaining)
+        }
+    } else {
+        Ok(result)
+    }
 }
