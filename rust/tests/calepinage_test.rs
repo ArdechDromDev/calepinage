@@ -3,6 +3,9 @@ mod calepinage_test {
     use rust::calepinage::*;
     use rust::plank_line;
     use spectral::prelude::*;
+    use quickcheck_macros::*;
+    use quickcheck::{Testable, Gen, TestResult, Arbitrary};
+    use std::collections::HashSet;
 
     #[test]
     fn should_return_planks_when_deck_is_really_small() {
@@ -178,5 +181,96 @@ mod calepinage_test {
         assert_that(&actual).is_ok().is_equal_to(&expected);
     }
 
+/*  L1 L2 L3 L4
+// /===========\
+// |p1|  |p5|p7|
+// |  |p3|  |--|
+// |--|  |  |p8|
+// |p2|  |--|  |
+// |  |--|p6|  |
+// |  |p4|  |  |
+// \===========/
 
+two_junctions_should_not_be_adjacent
+
+ */
+    #[derive(Clone, Debug)]
+    struct DeckForTest {
+        length: usize,
+        width: usize
+    }
+
+    impl DeckForTest {
+        fn to_deck(self) -> Deck {
+            Deck {
+                length: self.length,
+                width: self.width,
+            }
+        }
+    }
+
+     impl Arbitrary for DeckForTest {
+        fn arbitrary(g: &mut Gen) -> Self {
+            DeckForTest {
+                length: usize::arbitrary(g),
+                width: usize::arbitrary(g)
+            }
+        }
+    }
+
+    #[derive(Clone, Debug)]
+    pub struct PlankHeapForTest {
+        planks: Vec<PlankForTest>,
+        total_length: usize,
+    }
+
+    impl Arbitrary for PlankHeapForTest {
+        fn arbitrary(g: &mut Gen) -> Self {
+            PlankHeapForTest {
+                planks: Vec::arbitrary(g),
+                total_length: usize::arbitrary(g)
+            }
+        }
+    }
+
+    #[derive(Clone, Debug)]
+    pub struct PlankForTest {
+        length: usize,
+    }
+
+    impl Arbitrary for PlankForTest {
+        fn arbitrary(g: &mut Gen) -> Self {
+            PlankForTest {
+                length: usize::arbitrary(g)
+            }
+        }
+    }
+
+    impl PlankHeapForTest {
+        fn to_plank_heap(self) -> PlankHeap {
+            PlankHeap::from_planks(self.planks.into_iter().map(|plank| plank.to_plank()).collect())
+        }
+    }
+
+    impl PlankForTest {
+        fn to_plank(self) -> Plank {
+            Plank{length: self.length}
+        }
+    }
+/*
+    fn assert_no_adjacent_junction(lhs: Line, rhs: Line) -> bool {
+        let junctions_lhs: HashSet<usize> = compute_junctions(lhs);
+        let junctions_rhs: HashSet<usize> = compute_junctions(rhs);
+        intersect(junctions_lhs, junctions_rhs).is_empty()
+    }
+
+    #[quickcheck]
+    fn two_junctions_should_not_be_adjacent(deck: DeckForTest, plank_heap: PlankHeapForTest) -> bool {
+        let Calepinage(lines) = calepine(plank_heap.to_plank_heap(), deck.to_deck());
+
+        let lines_with_next: Vec<(Line, Line)> = unimplemented!();
+        lines_with_next.all(assert_no_adjacent_junction)
+    }
+
+*/
 }

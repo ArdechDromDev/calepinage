@@ -11,7 +11,7 @@
 // |  |--|p6|  |
 // |  |p4|  |  |
 // \===========/
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Deck {
     pub length: usize,
     pub width: usize,
@@ -19,12 +19,13 @@ pub struct Deck {
 
 impl Deck {}
 
+
 #[derive(Debug, PartialEq, Clone)]
 pub struct Plank {
     pub length: usize,
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct PlankHeap {
     planks: Vec<Plank>,
     total_length: usize,
@@ -76,6 +77,38 @@ impl Line {
         planks.push(new_plank_to_add);
         Line(planks)
     }
+
+    pub fn compute_junction(&self) -> Vec<Junction> {
+        if self.0.len() > 1 {
+            self.0.iter()
+                .scan(0, |acc, plank| { *acc = *acc + plank.length; Some(*acc) })
+                .map(|j| Junction(j))
+                .take(self.0.len() - 1)
+                .collect()
+        } else {
+            Vec::<Junction>::new()
+        }
+
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub struct Junction(usize);
+
+#[test]
+fn empty_line_should_have_no_junction() {
+    assert_eq!(Vec::<Junction>::new(), plank_line!().compute_junction());
+}
+
+#[test]
+fn single_plank_line_should_have_no_junction() {
+    assert_eq!(Vec::<Junction>::new(), plank_line!(Plank { length: 1 }).compute_junction());
+}
+
+
+#[test]
+fn two_planks_line_should_have_one_junction() {
+    assert_eq!(vec![Junction(3)], plank_line!(Plank { length: 3 }, Plank { length: 1 }).compute_junction());
 }
 
 #[test]
@@ -109,9 +142,9 @@ pub struct Calepinage(pub Vec<Line>);
 
 impl Calepinage {
     pub fn with_line(self, new_line_to_add: Line) -> Self {
-        let Calepinage(old_lines) = self;
-        let mut lines = vec![new_line_to_add];
-        lines.extend(old_lines);
+        let Calepinage(mut lines) = self;
+
+        lines.push(new_line_to_add);
         Calepinage(lines)
     }
 }
@@ -126,7 +159,6 @@ fn with_line_should_append_lines_in_order(){
     assert_eq!(&lines[0], &plank_line![Plank { length: 1 }]);
     assert_eq!(&lines[1], &plank_line![Plank { length: 2 }]);
 }
-
 
 #[derive(Default)]
 struct CalepineStep {
