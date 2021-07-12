@@ -17,12 +17,36 @@ pub struct Deck {
     pub width: usize,
 }
 
-impl Deck {}
+impl Deck {
+    pub const MAX_LENGTH: usize = 1_000_000;
+
+    pub fn new(length: usize, width: usize) -> Result<Self, String> {
+        if length == 0 || width == 0 {
+            Err("a deck can't have any zero dimension".to_string())
+        } else if length > Self::MAX_LENGTH {
+            Err(format!("max length of deck is {}", Self::MAX_LENGTH))
+        } else {
+            Ok(Deck { length, width })
+        }
+    }
+}
 
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Plank {
     pub length: usize,
+}
+
+impl Plank {
+    pub const MAX_LENGTH: usize = 10000;
+
+    pub fn new(length: usize) -> Result<Self, String> {
+        if length > Self::MAX_LENGTH {
+            Err(format!("max length of plank is {}", Self::MAX_LENGTH))
+        } else {
+            Ok(Plank { length })
+        }
+    }
 }
 
 #[derive(Default, Debug)]
@@ -33,7 +57,7 @@ pub struct PlankHeap {
 
 impl PlankHeap {
     pub fn add(self, count: usize, length: usize) -> Self {
-        let planks_to_be_added: Vec<Plank> = (0..count).map(|_| Plank { length }).collect();
+        let planks_to_be_added: Vec<Plank> = (0..count).map(|_| Plank::new(length).unwrap()).collect();
         let mut planks = self.planks.clone();
         planks.extend_from_slice(&planks_to_be_added);
         PlankHeap {
@@ -78,10 +102,14 @@ impl Line {
         Line(planks)
     }
 
+
     pub fn compute_junction(&self) -> Vec<Junction> {
         if self.0.len() > 1 {
             self.0.iter()
-                .scan(0, |acc, plank| { *acc = *acc + plank.length; Some(*acc) })
+                .scan(0, |acc, plank| {
+                    *acc = *acc + plank.length;
+                    Some(*acc)
+                })
                 .map(|j| Junction(j))
                 .take(self.0.len() - 1)
                 .collect()
@@ -92,7 +120,8 @@ impl Line {
     }
 }
 
-#[derive(Debug, PartialEq)]
+/// A Junction is a coordinate in a 1 dimension plan corresponding to two plank edges
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub struct Junction(usize);
 
 #[test]
@@ -102,38 +131,38 @@ fn empty_line_should_have_no_junction() {
 
 #[test]
 fn single_plank_line_should_have_no_junction() {
-    assert_eq!(Vec::<Junction>::new(), plank_line!(Plank { length: 1 }).compute_junction());
+    assert_eq!(Vec::<Junction>::new(), plank_line!(Plank::new(1).unwrap()).compute_junction());
 }
 
 
 #[test]
 fn two_planks_line_should_have_one_junction() {
-    assert_eq!(vec![Junction(3)], plank_line!(Plank { length: 3 }, Plank { length: 1 }).compute_junction());
+    assert_eq!(vec![Junction(3)], plank_line!(Plank::new(3).unwrap(), Plank::new(1).unwrap()).compute_junction());
 }
 
 #[test]
 fn should_build_line() {
     let actual = plank_line![]
-        .with_plank(Plank { length: 2 })
-        .with_plank(Plank { length: 1 });
+        .with_plank(Plank::new(2).unwrap())
+        .with_plank(Plank::new(1).unwrap());
 
-    let expected = Line(vec![Plank { length: 2 }, Plank { length: 1 }]);
+    let expected = Line(vec![Plank::new(2).unwrap(), Plank::new(1).unwrap()]);
     assert_eq!(expected, actual);
 }
 
 #[test]
 fn should_use_macro() {
-    let actual = plank_line![Plank { length: 2 }];
+    let actual = plank_line![Plank::new(2).unwrap()];
 
-    let expected = Line(vec![Plank { length: 2 }]);
+    let expected = Line(vec![Plank::new(2).unwrap()]);
     assert_eq!(expected, actual);
 }
 
 #[test]
 fn should_use_macro_with_2_planks() {
-    let actual = plank_line![Plank { length: 2 }, Plank { length: 1 }];
+    let actual = plank_line![Plank::new(2).unwrap(), Plank::new(1).unwrap()];
 
-    let expected = Line(vec![Plank { length: 2 }, Plank { length: 1 }]);
+    let expected = Line(vec![Plank::new(2).unwrap(), Plank::new(1).unwrap()]);
     assert_eq!(expected, actual);
 }
 
@@ -152,12 +181,12 @@ impl Calepinage {
 #[test]
 fn with_line_should_append_lines_in_order(){
     let calepinage = Calepinage::default()
-        .with_line(plank_line![Plank { length: 1 }])
-        .with_line(plank_line![Plank { length: 2 }]);
+        .with_line(plank_line![Plank::new(1).unwrap()])
+        .with_line(plank_line![Plank::new(2).unwrap()]);
 
     let Calepinage(lines) = calepinage;
-    assert_eq!(&lines[0], &plank_line![Plank { length: 1 }]);
-    assert_eq!(&lines[1], &plank_line![Plank { length: 2 }]);
+    assert_eq!(&lines[0], &plank_line![Plank::new(1).unwrap()]);
+    assert_eq!(&lines[1], &plank_line![Plank::new(2).unwrap()]);
 }
 
 #[derive(Default)]
