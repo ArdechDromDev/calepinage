@@ -31,7 +31,6 @@ impl Deck {
     }
 }
 
-
 #[derive(Debug, PartialEq, Clone)]
 pub struct Plank {
     pub length: usize,
@@ -57,7 +56,8 @@ pub struct PlankHeap {
 
 impl PlankHeap {
     pub fn add(self, count: usize, length: usize) -> Self {
-        let planks_to_be_added: Vec<Plank> = (0..count).map(|_| Plank::new(length).unwrap()).collect();
+        let planks_to_be_added: Vec<Plank> =
+            (0..count).map(|_| Plank::new(length).unwrap()).collect();
         let mut planks = self.planks.clone();
         planks.extend_from_slice(&planks_to_be_added);
         PlankHeap {
@@ -102,10 +102,10 @@ impl Line {
         Line(planks)
     }
 
-
     pub fn compute_junction(&self) -> Vec<Junction> {
         if self.0.len() > 1 {
-            self.0.iter()
+            self.0
+                .iter()
                 .scan(0, |acc, plank| {
                     *acc = *acc + plank.length;
                     Some(*acc)
@@ -116,12 +116,11 @@ impl Line {
         } else {
             Vec::<Junction>::new()
         }
-
     }
 }
 
 /// A Junction is a coordinate in a 1 dimension plan corresponding to two plank edges
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub struct Junction(usize);
 
 #[test]
@@ -131,13 +130,18 @@ fn empty_line_should_have_no_junction() {
 
 #[test]
 fn single_plank_line_should_have_no_junction() {
-    assert_eq!(Vec::<Junction>::new(), plank_line!(Plank::new(1).unwrap()).compute_junction());
+    assert_eq!(
+        Vec::<Junction>::new(),
+        plank_line!(Plank::new(1).unwrap()).compute_junction()
+    );
 }
-
 
 #[test]
 fn two_planks_line_should_have_one_junction() {
-    assert_eq!(vec![Junction(3)], plank_line!(Plank::new(3).unwrap(), Plank::new(1).unwrap()).compute_junction());
+    assert_eq!(
+        vec![Junction(3)],
+        plank_line!(Plank::new(3).unwrap(), Plank::new(1).unwrap()).compute_junction()
+    );
 }
 
 #[test]
@@ -179,7 +183,7 @@ impl Calepinage {
 }
 
 #[test]
-fn with_line_should_append_lines_in_order(){
+fn with_line_should_append_lines_in_order() {
     let calepinage = Calepinage::default()
         .with_line(plank_line![Plank::new(1).unwrap()])
         .with_line(plank_line![Plank::new(2).unwrap()]);
@@ -243,7 +247,10 @@ fn select_planks_for_line(
     assert_length_goal_fulfilled(step, deck_length)
 }
 
-fn assert_length_goal_fulfilled(step: CalepineStep, deck_length : usize ) -> Result<CalepineStep, CalepinageError> {
+fn assert_length_goal_fulfilled(
+    step: CalepineStep,
+    deck_length: usize,
+) -> Result<CalepineStep, CalepinageError> {
     if step.selected.total_length < deck_length {
         if step.remaining.total_length == 0 {
             Err(CalepinageError::NotEnoughPlanks)
