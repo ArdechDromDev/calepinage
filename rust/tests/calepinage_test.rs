@@ -265,7 +265,7 @@ mod calepinage_test {
     ) -> TestResult {
         //println!("deck {:?} heap : {:?} ", deck, plank_heap);
         match calepine(plank_heap.to_plank_heap(), deck.to_deck()) {
-            Ok(calepinage) => match (find_first_adjacent_junction(&calepinage)) {
+            Ok(calepinage) => match find_first_adjacent_junction(&calepinage) {
                 Some(junction) => TestResult::error("found invalid junction"),
                 None => TestResult::passed(),
             },
@@ -297,6 +297,37 @@ mod calepinage_test {
             vec![
                 Plank { length: 10 },
                 Plank { length: 10 },
+                Plank { length: 2 },
+                Plank { length: 2 },
+            ], //
+        );
+        let result = calepine(plank_heap, deck);
+        let calepinage = result.unwrap();
+        let line_sizes = calepinage
+            .clone()
+            .0
+            .iter()
+            .map(|line| line.0.iter().fold(0, |total, plank| total + plank.length))
+            .collect::<Vec<usize>>();
+        println!("{:?}", calepinage);
+        println!("{:?}", line_sizes);
+
+        assert_that(&find_first_adjacent_junction(&calepinage)).is_none();
+    }
+
+
+    #[test]
+    fn make_stash_algo_fail() {
+        let deck = Deck {
+            length: 12,
+            width: 3,
+        };
+        let plank_heap = PlankHeap::from_planks(
+            vec![
+                Plank { length: 10 },
+                Plank { length: 10 },
+                Plank { length: 10 },
+                Plank { length: 2 },
                 Plank { length: 2 },
                 Plank { length: 2 },
             ], //

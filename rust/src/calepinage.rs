@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 // This is a deck with length = 6 and width = 4
 // It's made with 8 planks.
 // p1 has length = 2
@@ -197,6 +199,7 @@ fn with_line_should_append_lines_in_order() {
 struct CalepineStep {
     remaining: PlankHeap,
     selected: PlankHeap,
+    stash: Option<Plank>,
 }
 
 impl CalepineStep {}
@@ -214,10 +217,12 @@ pub fn calepine(plank_heap: PlankHeap, deck: Deck) -> Result<Calepinage, Calepin
 
     let mut calepinage = Calepinage::default();
     for _ in 0..deck.width {
+        let previous_line_junctions = calepinage.0.last().map_or_else(|| HashSet::new(), |line| line.compute_junction().into_iter().collect());
         let CalepineStep {
             selected: result,
             remaining: next_remaining,
-        } = select_planks_for_line(&mut the_plank_heap, deck.length)?;
+            stash: _,
+        } = select_planks_for_line(&mut the_plank_heap, deck.length, previous_line_junctions)?;
         the_plank_heap = next_remaining;
         calepinage = calepinage.with_line(Line(result.planks));
     }
@@ -228,23 +233,35 @@ pub fn calepine(plank_heap: PlankHeap, deck: Deck) -> Result<Calepinage, Calepin
 fn select_planks_for_line(
     the_plank_heap: &mut PlankHeap,
     deck_length: usize,
+    previous_line_junctions: HashSet<Junction>,
 ) -> Result<CalepineStep, CalepinageError> {
-    let select_planks_fitting_length_goal = |step: CalepineStep, plank: &Plank| {
-        if step.selected.total_length + plank.length <= deck_length {
-            let selected = step.selected.add(1, plank.length);
-            CalepineStep { selected, ..step }
-        } else {
+    let select_planks_fitting_length_goal = |step: CalepineStep, plank: &Plank| -> CalepineStep {
+        let new_length = step.selected.total_length + plank.length;
+        let junction = Junction(new_length);
+
+        if new_length > deck_length {
             let remaining = step.remaining.add(1, plank.length);
             CalepineStep { remaining, ..step }
+        } else if previous_line_junctions.contains(&junction) {
+            let stash = Some(plank.clone());
+            CalepineStep { stash, ..step }
+        } else {
+            let selected = step.selected.add(1, plank.length);
+            CalepineStep { selected, ..step }
         }
     };
 
-    let step = the_plank_heap
+    let mut step = the_plank_heap
         .planks
         .iter()
         .fold(CalepineStep::default(), select_planks_fitting_length_goal);
 
-    assert_length_goal_fulfilled(step, deck_length)
+    step = match step.stash {
+        Some(plank) => select_planks_fitting_length_goal(CalepineStep { stash: None, ..step }, &plank),
+        None => step,
+    };
+
+   assert_length_goal_fulfilled(step, deck_length)
 }
 
 fn assert_length_goal_fulfilled(
