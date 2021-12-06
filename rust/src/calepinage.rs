@@ -1,4 +1,5 @@
 use std::collections::HashSet;
+use spectral::assert_that;
 
 // This is a deck with length = 6 and width = 4
 // It's made with 8 planks.
@@ -50,7 +51,7 @@ impl Plank {
     }
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, PartialEq)]
 pub struct PlankHeap {
     planks: Vec<Plank>,
     total_length: usize,
@@ -79,6 +80,10 @@ impl PlankHeap {
         planks
             .iter()
             .fold(PlankHeap::new(), |heap, plank| heap.add(1, plank.length))
+    }
+
+    fn to_string(&self) -> String {
+        self.planks.iter().map(|p| p.length.to_string()).collect::<Vec<String>>().join(", ")
     }
 }
 
@@ -195,19 +200,23 @@ fn with_line_should_append_lines_in_order() {
     assert_eq!(&lines[1], &plank_line![Plank::new(2).unwrap()]);
 }
 
-#[derive(Default)]
-struct CalepineStep {
+#[derive(Default, Debug, PartialEq)]
+pub struct CalepineStep {
     remaining: PlankHeap,
     selected: PlankHeap,
     stash: Option<Plank>,
 }
 
-impl CalepineStep {}
+impl CalepineStep {
+    fn to_string(&self) -> String {
+        format!("remaining = [{}], selected = [{}], stash = {:?}", self.remaining.to_string(), self.selected.to_string(), self.stash )
+    }
+}
 
 #[derive(Debug, PartialEq)]
 pub enum CalepinageError {
     NotEnoughPlanks,
-    OnlyUnusablePlanksRemaining,
+    OnlyUnusablePlanksRemaining(String),
 }
 
 pub fn calepine(plank_heap: PlankHeap, deck: Deck) -> Result<Calepinage, CalepinageError> {
@@ -272,9 +281,81 @@ fn assert_length_goal_fulfilled(
         if step.remaining.total_length == 0 {
             Err(CalepinageError::NotEnoughPlanks)
         } else {
-            Err(CalepinageError::OnlyUnusablePlanksRemaining)
+            Err(CalepinageError::OnlyUnusablePlanksRemaining(step.to_string()))
         }
     } else {
         Ok(step)
     }
 }
+
+
+#[test]
+fn foo() {
+    let deck = Deck {
+        length: 10,
+        width: 3,
+    };
+    let plank_heap = PlankHeap::from_planks(
+        vec![
+            Plank { length: 8 },
+            Plank { length: 5 },
+            Plank { length: 8 },
+            Plank { length: 5 },
+            Plank { length: 8 },
+            Plank { length: 5 },
+        ], //
+    );
+    let result = calepine(plank_heap, deck);
+    assert_that!(result).is_equal_to(
+        Err(CalepinageError::OnlyUnusablePlanksRemaining("remaining = [8, 8, 5, 5, 5], selected = [8], stash = None".to_string())))
+}
+
+
+#[test]
+fn step_to_string() {
+
+    let step = CalepineStep {
+        remaining: PlankHeap::from_planks(
+            vec![
+                Plank { length: 8 },
+                Plank { length: 8 },
+                Plank { length: 5 },
+                Plank { length: 5 },
+                Plank { length: 5 },
+            ]),
+        selected: PlankHeap::from_planks(
+            vec![Plank { length: 8 }]),
+        stash: None,
+    };
+    assert_that!(step.to_string()).is_equal_to("remaining = [8, 8, 5, 5, 5], selected = [8], stash = None".to_string());
+}
+
+
+#[test]
+fn make_stash_algo_fail() {
+    let deck = Deck {
+        length: 12,
+        width: 3,
+    };
+    let plank_heap = PlankHeap::from_planks(
+        vec![
+            Plank { length: 10 },
+            Plank { length: 10 },
+            Plank { length: 10 },
+            Plank { length: 2 },
+            Plank { length: 2 },
+            Plank { length: 2 },
+        ], //
+    );
+    let result = calepine(plank_heap, deck);
+
+    assert_that!(result).is_equal_to(Ok(
+        Calepinage::default()
+            .with_line(plank_line![Plank { length: 10 }, Plank { length: 2 }])
+            .with_line(plank_line![Plank { length: 2 }, Plank { length: 10}])
+            .with_line(plank_line![Plank { length: 10 }, Plank { length: 2 }])
+    ));
+}
+
+// "remaining = [8, 8, 5, 5, 5], selected = [8], stash = None
+// "remaining = [5, 5, 5], selected = [8, 8, 8], stash = None

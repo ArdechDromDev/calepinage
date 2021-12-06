@@ -1,0 +1,6 @@
+= Calepinage
+
+== TODOs
+
+* implement Debug trait for Calepinage for good error reporting in tests
+* make length a parametric type

@@ -1,14 +1,10 @@
 #[cfg(test)]
 mod calepinage_test {
-    use quickcheck::{Arbitrary, Gen, QuickCheck, TestResult, Testable};
-    use quickcheck_macros::*;
+    use quickcheck::{Arbitrary, Gen, QuickCheck, TestResult};
     use rust::calepinage::*;
     use rust::plank_line;
     use spectral::prelude::*;
-    use std::collections::hash_map::RandomState;
-    use std::collections::hash_set::Intersection;
     use std::collections::HashSet;
-    use std::slice::Windows;
 
     #[test]
     fn should_return_planks_when_deck_is_really_small() {
@@ -133,7 +129,7 @@ mod calepinage_test {
 
         assert_that(&result)
             .is_err()
-            .is_equal_to(CalepinageError::OnlyUnusablePlanksRemaining);
+            .is_equal_to(CalepinageError::OnlyUnusablePlanksRemaining("remaining = [10], selected = [2, 2], stash = None".to_string()));
     }
 
     #[test]
@@ -266,7 +262,7 @@ mod calepinage_test {
         //println!("deck {:?} heap : {:?} ", deck, plank_heap);
         match calepine(plank_heap.to_plank_heap(), deck.to_deck()) {
             Ok(calepinage) => match find_first_adjacent_junction(&calepinage) {
-                Some(junction) => TestResult::error("found invalid junction"),
+                Some(_junction) => TestResult::error("found invalid junction"),
                 None => TestResult::passed(),
             },
             Err(_) => TestResult::passed(),
@@ -316,6 +312,7 @@ mod calepinage_test {
     }
 
 
+
     #[test]
     fn make_stash_algo_fail() {
         let deck = Deck {
@@ -334,15 +331,9 @@ mod calepinage_test {
         );
         let result = calepine(plank_heap, deck);
         let calepinage = result.unwrap();
-        let line_sizes = calepinage
-            .clone()
-            .0
-            .iter()
-            .map(|line| line.0.iter().fold(0, |total, plank| total + plank.length))
-            .collect::<Vec<usize>>();
-        println!("{:?}", calepinage);
-        println!("{:?}", line_sizes);
 
         assert_that(&find_first_adjacent_junction(&calepinage)).is_none();
     }
+
 }
+
