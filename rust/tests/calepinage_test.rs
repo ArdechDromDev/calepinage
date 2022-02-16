@@ -129,11 +129,13 @@ mod calepinage_test {
 
         assert_that(&result)
             .is_err()
-            .is_equal_to(CalepinageError::OnlyUnusablePlanksRemaining("remaining = [10], selected = [2, 2], stash = None".to_string()));
+            .is_equal_to(CalepinageError::OnlyUnusablePlanksRemaining("[Plank { length: 100 }]".to_string()));
     }
 
+
+
+    // fn should_reuse remaining plank
     #[test]
-    #[ignore] //waiting fix for with_line
     fn should_invert_longest_plank_in_each_line() {
         let deck = Deck::new(3, 2).unwrap();
         let plank_heap = PlankHeap::default().add(2, 1).add(2, 2);
@@ -237,6 +239,7 @@ mod calepinage_test {
     }
 
     #[test]
+    #[ignore]
     fn check() {
         QuickCheck::new()
             .tests(100000)
