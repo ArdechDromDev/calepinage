@@ -264,25 +264,6 @@ fn calepine_line(length: usize, plank_heap: &mut PlankHeap, invert: bool) -> Res
     Ok(Line(line_planks))
 }
 
-
-
-
-fn assert_length_goal_fulfilled(
-    step: CalepineStep,
-    deck_length: usize,
-) -> Result<CalepineStep, CalepinageError> {
-    if step.selected.total_length < deck_length {
-        if step.remaining.total_length == 0 {
-            Err(CalepinageError::NotEnoughPlanks)
-        } else {
-            Err(CalepinageError::OnlyUnusablePlanksRemaining(step.to_string()))
-        }
-    } else {
-        Ok(step)
-    }
-}
-
-
 #[test]
 fn foo() {
     let deck = Deck {
