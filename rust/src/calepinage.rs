@@ -1,6 +1,3 @@
-use std::collections::HashSet;
-use spectral::assert_that;
-
 // This is a deck with length = 6 and width = 4
 // It's made with 8 planks.
 // p1 has length = 2
@@ -220,74 +217,52 @@ pub enum CalepinageError {
 }
 
 pub fn calepine(plank_heap: PlankHeap, deck: Deck) -> Result<Calepinage, CalepinageError> {
-    let mut the_plank_heap: PlankHeap = PlankHeap::from_planks(plank_heap.planks);
-    let decreasing_length = |a: &Plank, b: &Plank| b.length.cmp(&a.length);
-    the_plank_heap.planks.sort_by(decreasing_length);
+    let mut ph = PlankHeap::from_planks(plank_heap.planks);
 
-    let mut calepinage = Calepinage::default();
-    for _ in 0..deck.width {
-        let previous_line_junctions = calepinage.0.last().map_or_else(|| HashSet::new(), |line| line.compute_junction().into_iter().collect());
-        let CalepineStep {
-            selected: result,
-            remaining: next_remaining,
-            stash: _,
-        } = select_planks_for_line(&mut the_plank_heap, deck.length, previous_line_junctions)?;
-        the_plank_heap = next_remaining;
-        calepinage = calepinage.with_line(Line(result.planks));
-    }
+    let calepinage =     match deck {
+        Deck { length, width} => {
+            let mut lines = vec![];
+            for i in 0..width {
+                lines.push(calepine_line(length, &mut ph, i % 2 == 1)?);
+            }
+            Calepinage(lines)
+        }
+    };
 
     Ok(calepinage)
 }
 
-fn select_planks_for_line(
-    the_plank_heap: &mut PlankHeap,
-    deck_length: usize,
-    previous_line_junctions: HashSet<Junction>,
-) -> Result<CalepineStep, CalepinageError> {
-    let select_planks_fitting_length_goal = |step: CalepineStep, plank: &Plank| -> CalepineStep {
-        let new_length = step.selected.total_length + plank.length;
-        let junction = Junction(new_length);
+fn calepine_line(length: usize, plank_heap: &mut PlankHeap, invert: bool) -> Result<Line, CalepinageError> {
+    let planks = &mut plank_heap.planks;
+    planks.sort_by(|a, b| a.length.cmp(&b.length));
+    
+    let mut line_planks = vec![];
+    let mut current_length = 0;
+    let mut remaining = vec![];
 
-        if new_length > deck_length {
-            let remaining = step.remaining.add(1, plank.length);
-            CalepineStep { remaining, ..step }
-        } else if previous_line_junctions.contains(&junction) {
-            let stash = Some(plank.clone());
-            CalepineStep { stash, ..step }
+    while current_length < length {
+        if let Some(Plank { length: plank_length }) = planks.pop() {
+            if current_length + plank_length <= length {
+                line_planks.push(Plank { length: plank_length });
+                current_length += plank_length;
+            } else {
+                remaining.push(Plank { length: plank_length });
+            }
         } else {
-            let selected = step.selected.add(1, plank.length);
-            CalepineStep { selected, ..step }
+            if remaining.is_empty() {
+                return Err(CalepinageError::NotEnoughPlanks);
+            } else {
+                return Err(CalepinageError::OnlyUnusablePlanksRemaining(format!("{:?}", remaining)));
+            }
         }
-    };
-
-    let mut step = the_plank_heap
-        .planks
-        .iter()
-        .fold(CalepineStep::default(), select_planks_fitting_length_goal);
-
-    step = match step.stash {
-        Some(plank) => select_planks_fitting_length_goal(CalepineStep { stash: None, ..step }, &plank),
-        None => step,
-    };
-
-   assert_length_goal_fulfilled(step, deck_length)
-}
-
-fn assert_length_goal_fulfilled(
-    step: CalepineStep,
-    deck_length: usize,
-) -> Result<CalepineStep, CalepinageError> {
-    if step.selected.total_length < deck_length {
-        if step.remaining.total_length == 0 {
-            Err(CalepinageError::NotEnoughPlanks)
-        } else {
-            Err(CalepinageError::OnlyUnusablePlanksRemaining(step.to_string()))
-        }
-    } else {
-        Ok(step)
     }
-}
+    if invert {
+        line_planks.reverse()
+    }
 
+    plank_heap.planks.extend(remaining);
+    Ok(Line(line_planks))
+}
 
 #[test]
 fn foo() {
